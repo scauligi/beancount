@@ -1490,7 +1490,7 @@ class TestMetaData(unittest.TestCase):
         self.assertEqual({'test4': 'come', 'test5': 'from', 'test6': 'this'},
                          self.strip_meta(entries[0].postings[1].meta))
 
-    @parser.parse_doc(expect_errors=True)
+    @parser.parse_doc(expect_errors=False)
     def test_metadata_transaction__repeated(self, entries, errors, _):
         """
           2013-05-18 * ""
@@ -1503,12 +1503,10 @@ class TestMetaData(unittest.TestCase):
             Income:Investments  -100 USD
         """
         self.assertEqual(1, len(entries))
-        self.assertEqual('Bananas', entries[0].meta['test'])
-        self.assertEqual({'test': 'Bananas'},
+        self.assertEqual(['Bananas', 'Apples', 'Oranges'], entries[0].meta['test'])
+        self.assertEqual({'test': ['Bananas', 'Apples']},
                          self.strip_meta(entries[0].postings[0].meta))
-        self.assertEqual(3, len(errors))
-        self.assertTrue(all(re.search('Duplicate.*metadata field', error.message)
-                            for error in errors))
+        self.assertEqual(0, len(errors))
 
     @parser.parse_doc()
     def test_metadata_empty(self, entries, errors, _):

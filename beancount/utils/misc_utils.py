@@ -112,6 +112,24 @@ def groupby(keyfun, elements):
     return grouped
 
 
+def add_meta(meta, key_value):
+    """Add a key/value pair to a dict. If the key already exists, append
+    the value to the existing entry, turning the entry into a list if it
+    isn't already.
+
+    Args:
+      meta: A dictionary.
+      key_value: A KeyValue instance.
+    """
+    key, value = key_value
+    if key in meta:
+        if not isinstance(meta[key], list):
+            meta[key] = [meta[key]]
+        meta[key].append(value)
+    else:
+        meta[key] = value
+
+
 def filter_type(elist, types):
     """Filter the given list to yield only instances of the given types.
 

@@ -17,6 +17,7 @@ from beancount.core.position import Cost
 from beancount.core.position import CostSpec
 from beancount.core.account import has_component
 from beancount.utils.bisect_key import bisect_left_with_key
+from beancount.utils.misc_utils import add_meta
 
 
 # Type declarations.
@@ -413,7 +414,8 @@ def new_metadata(filename, lineno, kvlist=None):
     meta = {'filename': filename,
             'lineno': lineno}
     if kvlist:
-        meta.update(kvlist)
+        for key_value in kvlist:
+            add_meta(meta, key_value)
     return meta
 
 
