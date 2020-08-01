@@ -213,6 +213,13 @@ class TestEntryPrinter(cmptest.TestCase):
         printer.EntryPrinter().write_metadata(meta, oss)
         self.assertEqual('  something: "a\\"\\\\c"\n', oss.getvalue())
 
+    def test_metadata_array(self):
+        meta = data.new_metadata('beancount/core/testing.beancount', 12345)
+        meta['something'] = [r'a"\c', 'second']
+        oss = io.StringIO()
+        printer.EntryPrinter().write_metadata(meta, oss)
+        self.assertEqual('  something: "a\\"\\\\c"\n  something: "second"\n', oss.getvalue())
+
 
 def characterize_spaces(text):
     """Classify each line to a particular type.
@@ -472,8 +479,10 @@ class TestPrinterMisc(test_utils.TestCase):
 
         2000-01-03 * "Something"
           doc: "some-statement.pdf"
+          doc: "another-statement.pdf"
           Assets:US:Investments:Cash  -23.45 USD
             note: "No commission"
+            note: 40
           Assets:US:Investments:HOOL    1 HOOL {23.45 USD, 2000-01-03}
             settlement: 2000-01-05
 
@@ -551,6 +560,31 @@ class TestPrinterMisc(test_utils.TestCase):
         entries, errors, options_map = loader.load_string(input_string)
         self.assertFalse(errors)
         self.assertIs(entries[-1].postings[-1].meta['foo'], None)
+
+    def test_render_meta_array_with_None(self):
+        # Issue 378.
+        input_string = textwrap.dedent("""
+
+          2019-01-01 open Assets:A
+          2019-01-01 open Assets:B
+            baz:
+            baz:
+            baz:
+
+          2019-02-28 txn "Test"
+            Assets:A                       10.00 USD
+              bar: 3
+              bar:
+            Assets:B                      -10.00 USD
+              foo:
+              foo: "foo"
+
+        """)
+        entries, errors, options_map = loader.load_string(input_string)
+        self.assertFalse(errors)
+        self.assertEqual(entries[1].meta['baz'], [None, None, None])
+        self.assertEqual(entries[-1].postings[0].meta['bar'], [3, None])
+        self.assertEqual(entries[-1].postings[1].meta['foo'], [None, 'foo'])
 
 
 if __name__ == '__main__':

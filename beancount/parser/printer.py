@@ -121,6 +121,27 @@ class EntryPrinter:
 
     META_IGNORE = set(['filename', 'lineno', '__automatic__'])
 
+    def write_value(self, key, value, oss, prefix=None):
+        value_str = None
+        if isinstance(value, str):
+            value_str = '"{}"'.format(misc_utils.escape_string(value))
+        elif isinstance(value, (Decimal, datetime.date, amount.Amount)):
+            value_str = str(value)
+        elif isinstance(value, bool):
+            value_str = 'TRUE' if value else 'FALSE'
+        elif isinstance(value, (dict, inventory.Inventory)):
+            pass # Ignore dicts, don't print them out.
+        elif isinstance(value, list):
+            for v in value:
+                self.write_value(key, v, oss, prefix)
+            return
+        elif value is None:
+            value_str = ''  # Render null metadata as empty, on purpose.
+        else:
+            raise ValueError("Unexpected value: '{!r}'".format(value))
+        if value_str is not None:
+            oss.write("{}{}: {}\n".format(prefix, key, value_str))
+
     def write_metadata(self, meta, oss, prefix=None):
         """Write metadata to the file object, excluding filename and line number.
 
@@ -134,21 +155,7 @@ class EntryPrinter:
             prefix = self.prefix
         for key, value in sorted(meta.items()):
             if key not in self.META_IGNORE:
-                value_str = None
-                if isinstance(value, str):
-                    value_str = '"{}"'.format(misc_utils.escape_string(value))
-                elif isinstance(value, (Decimal, datetime.date, amount.Amount)):
-                    value_str = str(value)
-                elif isinstance(value, bool):
-                    value_str = 'TRUE' if value else 'FALSE'
-                elif isinstance(value, (dict, inventory.Inventory)):
-                    pass # Ignore dicts, don't print them out.
-                elif value is None:
-                    value_str = ''  # Render null metadata as empty, on purpose.
-                else:
-                    raise ValueError("Unexpected value: '{!r}'".format(value))
-                if value_str is not None:
-                    oss.write("{}{}: {}\n".format(prefix, key, value_str))
+                value_str = self.write_value(key, value, oss, prefix)
 
     def Transaction(self, entry, oss):
         # Compute the string for the payee and narration line.

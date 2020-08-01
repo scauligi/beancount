@@ -38,6 +38,7 @@ from beancount.parser import lexer
 from beancount.parser import options
 from beancount.core import account
 from beancount.core import data
+from beancount.utils.misc_utils import add_meta
 
 
 ParserError = collections.namedtuple('ParserError', 'source message entry')
@@ -976,24 +977,13 @@ class Builder(lexer.LexBuilder):
                         links.update(posting_or_kv.links)
                 else:
                     if last_posting is None:
-                        value = explicit_meta.setdefault(posting_or_kv.key,
-                                                         posting_or_kv.value)
-                        if value is not posting_or_kv.value:
-                            self.errors.append(ParserError(
-                                meta, "Duplicate metadata field on entry: {}".format(
-                                    posting_or_kv), None))
+                        add_meta(explicit_meta, posting_or_kv)
                     else:
                         if last_posting.meta is None:
                             last_posting = last_posting._replace(meta={})
                             postings.pop(-1)
                             postings.append(last_posting)
-
-                        value = last_posting.meta.setdefault(posting_or_kv.key,
-                                                             posting_or_kv.value)
-                        if value is not posting_or_kv.value:
-                            self.errors.append(ParserError(
-                                meta, "Duplicate posting metadata field: {}".format(
-                                    posting_or_kv), None))
+                        add_meta(last_posting.meta, posting_or_kv)
 
         # Freeze the tags & links or set to default empty values.
         tags, links = self._finalize_tags_links(tags, links)
