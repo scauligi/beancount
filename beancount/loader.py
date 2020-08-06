@@ -503,14 +503,19 @@ def _load(sources, log_timings, extra_validations, encoding):
         entries.sort(key=data.entry_sortkey)
 
     # Run interpolation on incomplete entries.
-    with misc_utils.log_time('booking', log_timings, indent=1):
-        entries, balance_errors = booking.book(entries, options_map)
+    with misc_utils.log_time('interpolation', log_timings, indent=1):
+        entries, balance_errors = booking.book(entries, options_map, do_booking=False)
         parse_errors.extend(balance_errors)
 
     # Transform the entries.
     with misc_utils.log_time('run_transformations', log_timings, indent=1):
         entries, errors = run_transformations(entries, parse_errors, options_map,
                                               log_timings)
+
+    # Run booking on entries.
+    with misc_utils.log_time('booking', log_timings, indent=1):
+        entries, balance_errors = booking.book(entries, options_map, do_booking=True)
+        errors.extend(balance_errors)
 
     # Validate the list of entries.
     with misc_utils.log_time('beancount.ops.validate', log_timings, indent=1):

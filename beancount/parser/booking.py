@@ -18,7 +18,7 @@ from beancount.parser import booking_full
 BookingError = collections.namedtuple('BookingError', 'source message entry')
 
 
-def book(incomplete_entries, options_map):
+def book(incomplete_entries, options_map, do_booking=True):
     """Book inventory lots and complete all positions with incomplete numbers.
 
     Args:
@@ -38,7 +38,7 @@ def book(incomplete_entries, options_map):
 
     # Do the booking here!
     entries, booking_errors = booking_full.book(incomplete_entries, options_map,
-                                                booking_methods)
+                                                booking_methods, do_booking)
 
     # Check for MISSING elements remaining.
     missing_errors = validate_missing_eliminated(entries, options_map)

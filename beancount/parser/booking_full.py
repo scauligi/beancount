@@ -102,18 +102,18 @@ def unique_label() -> Text:
 SelfReduxError = collections.namedtuple('SelfReduxError', 'source message entry')
 
 
-def book(entries, options_map, methods):
+def book(entries, options_map, methods, do_booking=True):
     """Interpolate missing data from the entries using the full historical algorithm.
     See the internal implementation _book() for details.
     This method only stripes some of the return values.
 
     See _book() for arguments and return values.
     """
-    entries, errors, _ = _book(entries, options_map, methods)
+    entries, errors, _ = _book(entries, options_map, methods, do_booking)
     return entries, errors
 
 
-def _book(entries, options_map, methods):
+def _book(entries, options_map, methods, do_booking=True):
     """Interpolate missing data from the entries using the full historical algorithm.
 
     Args:
@@ -174,9 +174,13 @@ def _book(entries, options_map, methods):
                 # mixture of Cost and CostSpec instances. This is necessary to
                 # let the interpolation do its magic on partially incomplete
                 # CostSpec instances below.
-                (booked_postings,
-                 booking_errors) = book_reductions(entry, group_postings, balances,
-                                                   methods)
+                if do_booking:
+                    (booked_postings,
+                     booking_errors) = book_reductions(entry, group_postings, balances,
+                                                       methods)
+                else:
+                    booked_postings = group_postings
+                    booking_errors = []
 
                 # If there were any errors, skip this group of postings.
                 if booking_errors:
@@ -657,6 +661,8 @@ def compute_cost_number(costspec, units):
       If it is not possible to calculate the cost, return None.
       Otherwise, returns a Decimal instance, the per-unit cost.
     """
+    if isinstance(costspec, Cost):
+        return costspec.number
     number_per = costspec.number_per
     number_total = costspec.number_total
     if MISSING in (number_per, number_total):
