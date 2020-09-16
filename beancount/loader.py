@@ -54,7 +54,7 @@ PICKLE_CACHE_FILENAME = '.{filename}.picklecache'
 
 # The runtime threshold below which we don't bother creating a cache file, in
 # seconds.
-PICKLE_CACHE_THRESHOLD = 1.0
+PICKLE_CACHE_THRESHOLD = 0.0
 
 
 def load_file(filename, log_timings=None, log_errors=None, extra_validations=None,
