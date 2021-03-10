@@ -567,7 +567,7 @@ def render_text(result_types, result_rows, dcontext, file,
     # Compute a final format strings.
     formats = ['{{:{}}}'.format(max(renderer.width(), 1))
                for renderer in renderers]
-    header_formats = ['{{:^{}.{}}}'.format(renderer.width(), renderer.width())
+    header_formats = ['{{:^{}.{}}}'.format(max(renderer.width(), 1), max(renderer.width(), 1))
                       for renderer in renderers]
     if boxed:
         line_formatter = '| ' + ' | '.join(formats) + ' |\n'
