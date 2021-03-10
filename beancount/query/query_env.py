@@ -822,6 +822,18 @@ class Coalesce(query_compile.EvalFunction):
                 return arg
         return None
 
+class If(query_compile.EvalFunction):
+    "If"
+    __intypes__ = [object, object, object]
+
+    def __init__(self, operands):
+        super().__init__(operands, object)
+
+    def __call__(self, context):
+        condition = self.operands[0](context)
+        index = 1 if condition else 2
+        return self.operands[index](context)
+
 class Date(query_compile.EvalFunction):
     "Construct a date with year, month, day arguments"
     __intypes__ = [int, int, int]
@@ -944,6 +956,7 @@ SIMPLE_FUNCTIONS = {
     ('possign', position.Position, str)                  : PosSignPosition,
     ('possign', inventory.Inventory, str)                : PosSignInventory,
     'coalesce'                                           : Coalesce,
+    'if'                                                 : If,
 
     # FIXME: 'only' should be removed.
     'only'                                               : OnlyInventory,
